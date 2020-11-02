@@ -1,24 +1,79 @@
 # Reverse proxy setup for https://dataport.emma.msrb.org
 
-## Requirements
+## Server capacity requirements
+- **Minimal capacity**
+Ram : 4G
+CPU Cores : 2
 
-- **A kubernetes cluster running**
+- **Recommended capacity**
+Ram : 8G
+CPU Cores : 4
+
+## Client machine tooling requirement
 
 - **kubectl tool**
+Install using instructions from here : https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
 - **Docker**
+Install using instructions from here : https://docs.docker.com/get-docker/
 
 - **Git**
+Install using instructions from here : https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+- **Helm**
+Install using instructions from here : https://helm.sh/docs/intro/install/
 
 ## Clone the needed repositories
 ```
-git clone https://github.com/filetrust/icap-infrastructure.git
+git clone https://github.com/k8-proxy/icap-infrastructure
 git clone https://github.com/k8-proxy/k8-reverse-proxy.git
 git clone https://github.com/k8-proxy/s-k8-proxy-rebuild.git
-git clone https://github.com/k8-proxy/gp-emma-dataport-website.git
 ```
 
-## Installation
+## Install rancher
+
+### Install rancher on aws
+Follow documentation from https://github.com/k8-proxy/s-k8-proxy-rebuild/tree/master/stable-src#install-kubernetes
+
+### Install rancher on your client machine
+1. Deploy rancher server using docker
+
+```
+docker run -d --restart=unless-stopped \
+  -p 8080:80 -p 8443:443 \
+  --privileged \
+  rancher/rancher:latest
+```
+
+Once the docker is running, it takes few minutes to initialize the server. Once the server is started, access the rancher UI on https://<host or IP>:8443
+
+
+4. Get the cluster credentials
+
+When you log in you should should see a local cluster installed. You can get it's credentials and use it.
+Click on that local cluster, On the right top, click on "Kubeconfig File" and copy the config file data.
+Create a local file called `kubeconfig` and paste the copied data.
+
+
+5. Test the cluster deployment:
+
+Select and open the cluster to be tested. On the right top, click on "Kubeconfig File" and copy the config file data.
+Create a local file called `kubeconfig` and paste the copied data.
+Set the KUBECONFIG environment variable to point to that file
+
+```
+export KUBECONFIG=kubeconfig
+``` 
+
+Verify that the setup works, Commands bellow should generate some output
+
+```
+kubectl get nodes
+kubectl get all --all-namespaces
+``` 
+
+
+## Deploy adaptation service and proxies (Run all these commands from your machine)
 
 - Install ICAP server and adaptation service
   
