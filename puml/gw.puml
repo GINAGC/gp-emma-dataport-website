@@ -1,0 +1,83 @@
+@startuml
+footer Kubernetes Plant-UML
+scale max 1024 width
+skinparam linetype polyline
+skinparam nodesep 10
+skinparam ranksep 10
+
+
+
+' Azure
+!define AzurePuml https://raw.githubusercontent.com/RicardoNiepel/Azure-PlantUML/release/2-1/dist
+
+!includeurl AzurePuml/AzureCommon.puml
+!includeurl AzurePuml/AzureSimplified.puml
+
+!includeurl AzurePuml/Compute/AzureAppService.puml
+!includeurl AzurePuml/Compute/AzureBatch.puml
+!includeurl AzurePuml/Containers/AzureContainerRegistry.puml
+!includeurl AzurePuml/Containers/AzureKubernetesService.puml
+!includeurl AzurePuml/Databases/AzureDatabaseForPostgreSQL.puml
+!includeurl AzurePuml/Databases/AzureCosmosDb.puml
+!includeurl AzurePuml/Databases/AzureSqlDatabase.puml
+!includeurl AzurePuml/DevOps/AzurePipelines.puml
+!includeurl AzurePuml/Identity/AzureActiveDirectory.puml
+!includeurl AzurePuml/Networking/AzureLoadBalancer.puml
+!includeurl AzurePuml/Security/AzureKeyVault.puml
+!includeurl AzurePuml/Storage/AzureBlobStorage.puml
+!includeurl AzurePuml/Storage/AzureStorage.puml
+
+' Kubernetes
+!define KubernetesPuml https://raw.githubusercontent.com/dcasati/kubernetes-PlantUML/master/dist
+
+!includeurl KubernetesPuml/kubernetes_Context.puml
+!includeurl KubernetesPuml/kubernetes_Simplified.puml
+
+!includeurl KubernetesPuml/OSS/KubernetesApi.puml
+!includeurl KubernetesPuml/OSS/KubernetesIng.puml
+!includeurl KubernetesPuml/OSS/KubernetesPod.puml
+
+collections "Client Apps" as clientalias
+collections "Helm Charts" as helmalias
+
+left to right direction
+
+' Azure Components
+AzureContainerRegistry(acr, "docker.io", "Canada Central")
+
+AzurePipelines(ado, "CI/CD\nAWS Pipelines", "Global")
+
+' Kubernetes Components
+Cluster_Boundary(cluster, "emma-dataport-website") {
+
+    Namespace_Boundary(nsNginx, "Nginx service") {
+           AzureLoadBalancer(alb, "Nginx Service", "")
+    }
+    AzureLoadBalancer(alb, "Nginx Service", "Canada Central")
+
+    KubernetesApi(KubernetesApi, "Kubernetes API", "")
+    
+    Namespace_Boundary(nsSquid, "squid service") {
+        KubernetesIng(ingress, "ICAP Client", "")
+    }
+
+    Namespace_Boundary(nsIcapServer, "ICAP Server") {
+        KubernetesIng(KubernetesBE1, "Server", "")
+        KubernetesIng(KubernetesBE2, "module1", "")
+        KubernetesIng(KubernetesBE3, "module2", "")
+    }
+
+}
+
+Rel(helmalias, KubernetesApi, "helm upgrade")
+
+Rel(clientalias, alb, "HTTP")
+Rel(alb, ingress, "HTTP")
+
+Rel(ingress, KubernetesBE1, "ICAP Request/Response")
+Rel(KubernetesBE1, KubernetesBE2, " ")
+Rel(KubernetesBE1, KubernetesBE3, " ")
+
+Rel(ado, acr, "docker push")
+Rel_U(KubernetesApi, acr, "docker pull")
+@enduml
