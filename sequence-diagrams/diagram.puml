@@ -1,0 +1,23 @@
+@startuml
+actor User
+
+!$file = '<file>.pdf'
+
+User -> "https://dataport.emma.msrb.org.glasswall-icap.com (NGINX)": GET /$file Request
+
+"https://dataport.emma.msrb.org.glasswall-icap.com (NGINX)"-> SQUID : Get /$file Request
+SQUID -> "https://dataport.emma.msrb.org" : Get /$file Request
+"https://dataport.emma.msrb.org" -> SQUID : return $file
+SQUID -> ICAP : submit $file for Inspection
+ICAP -> ICAP : Files Inspection and processing
+ICAP -> SQUID : Inspected and processed File
+
+SQUID -> "https://dataport.emma.msrb.org.glasswall-icap.com (NGINX)" : return Inspected and processed file
+"https://dataport.emma.msrb.org.glasswall-icap.com (NGINX)" -> User : $file
+
+@enduml
+
+Hello Georgina,
+Sorry If I am sending you the diagram late.
+could you please check the diagram and let me know if that what you wanted.
+it's a first diagram. Please give me feedback to improve on it.
