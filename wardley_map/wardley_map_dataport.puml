@@ -1,0 +1,140 @@
+@startuml
+
+skinparam defaultTextAlignment center
+skinparam BackgroundColor  #e2e2e2-#afafaf
+skinparam wrapWidth 100
+
+!include  <C4/C4_Context.puml>
+!include <office/Users/user.puml>
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.2.0
+!includeurl ICONURL/common.puml
+!includeurl ICONURL/font-awesome-5/user.puml
+
+title dataport.emma.msrb.org
+
+
+Boundary(genesis,                       "Genesis"){
+  System(automation,                    "Automation")                   #Orange
+  System(mgt_console,                   "Management Console")           #Pink
+
+}
+
+Boundary(custom_built,                  "Custom Built"){
+  FA5_USER(head_infosec,                "\nCustomer\nHead of Infosec") #White
+  System(gw_proxy,                      "GW Proxy Service")            #LightBlue
+  System(deploy,                        "Deploy")                      #LightBlue
+  FA5_USER(it_manager,                  "\nCustomer\nIT Manager")      #White
+  System(manage,                        "Manage")                      #LightBlue
+  System(scales,                        "Scale")                       #LightBlue
+  System(docs,                          "Docs")                        #Khaki
+  System(content_policy,                "Content Managment Policy")    #Pink
+  System(event_service,                 "Transaction Event Service")   #Pink
+  System(non_compliant,                 "Non Compliant File Service")  #Pink
+  System(monitor,                       "Monitor Prometheus")          #Pink
+  System(icap_server,                   "GW ICAP Server")              #Khaki
+  System(ami_image,                     "AMI Image")                   #Orange
+  System(charts_config,                 "Charts","(Config)")           #Orange
+
+}
+
+Boundary(product,                       "Product"){
+  System(proxy_client,                  "ICAP Proxy Client", "(squid)")#Purple
+  System(adaptation_service,            "GW Adaptation Service")       #Khaki
+  System(helm,                          "Helm")                        #Khaki
+  System(url_rewrite,                   "URL rewrite", "(NGINX)")      #Purple
+  System(load_balancer,                 "Load Balancer")               #Purple
+  System(rancher,                       "Rancher","(Experienced)")     #Orange
+  System(k8s,                           "K8s")                         #Khaki
+  System(docker,                        "Docker")                      #Khaki
+  System(ssl,                           "SSL Ingress")                 #Orange
+  System(rabbitmq,                      "Rabbit MQ")                   #Khaki
+  System(ssh,                           "SSH")                         #Khaki
+  System(shared_storage,                "Shared Storage")              #Khaki
+  System(nfs_storage,                   "NFS Storage")                 #Pink
+  System(ubuntu,                        "Ubuntu")                      #Khaki
+  System(sdk,                           "Glasswall Rebuild SDK-Evaluation") #Khaki
+
+}
+
+Boundary(commodity,                     "Commodity"){
+  FA5_USER(content_consumer,            "\nUser\n(Content Consumer)") #White
+  System(website,                       "Website")                    #LimeGreen
+  System(dns,                           "DNS")                        #LimeGreen
+  System(aws,                           "AWS EC2 VM")                 #LimeGreen
+  System(git,                           "Git")                        #LimeGreen
+
+}
+
+
+head_infosec              --[hidden]>    it_manager
+head_infosec              --             gw_proxy
+automation                -              deploy
+it_manager                -down-         deploy
+it_manager                --             manage
+it_manager                -down-         scales
+deploy                    .down.         docs
+automation                --[hidden]>    mgt_console
+mgt_console               -up-           manage
+manage                    --[hidden]>    content_policy
+mgt_console               -              content_policy
+content_policy            --[hidden]>    event_service
+mgt_console               -down-         event_service
+content_policy            -              non_compliant
+non_compliant             --[hidden]>    monitor
+mgt_console               -down-         monitor
+scales                    -              icap_server
+deploy                    --             ami_image
+deploy                    .down.         charts_config
+ami_image                 -up-           charts_config
+gw_proxy                  -              proxy_client
+it_manager                .              proxy_client
+icap_server               -up-           proxy_client
+non_compliant             -              adaptation_service
+proxy_client              --[hidden]>    adaptation_service
+icap_server               -              adaptation_service
+adaptation_service        --[hidden]>    helm
+charts_config             -left-         helm
+url_rewrite               --             proxy_client
+url_rewrite               -              load_balancer
+proxy_client              -              load_balancer
+load_balancer             --[hidden]>    rancher
+scales                    .              rancher
+deploy                    .left.         rancher
+rancher                   -              k8s
+helm                      -up-           k8s
+k8s                       -              docker
+k8s                       --             ssl
+adaptation_service        --             rabbitmq
+event_service             -              rabbitmq
+docker                    --             ssh
+deploy                    .              ssh
+adaptation_service        --             shared_storage
+shared_storage            --             nfs_storage
+ssh                       -              ubuntu
+docker                    -              ubuntu
+adaptation_service        -up-           sdk
+gw_proxy                  -              content_consumer
+url_rewrite               -              content_consumer
+content_consumer          --             website
+url_rewrite               -              website
+icap_server               -              website
+website                   --             dns
+deploy                    .              dns
+dns                       --[hidden]>    aws
+dns                       -[hidden]>     git
+deploy                    .              git
+ubuntu                    -              aws
+
+
+footer
+|                 Key |
+<#LightBlue>| User Needs |
+<#LimeGreen>| External |
+<#Khaki>| Included in Release |
+<#Orange>| Provided by Team |
+<#Pink>| Not Yet Implemented |
+<#Purple>| Reference Implementation |
+| ....... Interacts with |
+end footer
+
+@enduml
